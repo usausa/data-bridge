@@ -259,7 +259,7 @@ public sealed class ObjectDataReader<T> : IDataReader
         }
 
         var name = value?.GetType().Name ?? "null";
-        throw new NotSupportedException($"Convert to Guid is not supported. type=[{name}]");
+        throw new NotSupportedException($"Convert to bytes is not supported. type=[{name}]");
     }
 
     public long GetChars(int i, long fieldOffset, char[]? buffer, int bufferOffset, int length)
@@ -276,6 +276,6 @@ public sealed class ObjectDataReader<T> : IDataReader
         }
 
         var name = value?.GetType().Name ?? "null";
-        throw new NotSupportedException($"Convert to Guid is not supported. type=[{name}]");
+        throw new NotSupportedException($"Convert to chars is not supported. type=[{name}]");
     }
 }
