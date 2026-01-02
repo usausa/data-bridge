@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mofucat.DataToolkit\Mofucat.DataToolkit.csproj" />
-    <ProjectReference Include="..\Mofucat.DataToolkit.Avro\Mofucat.DataToolkit.Avro.csproj" />
+    <ProjectReference Include="..\Mofucat.DataBridge\Mofucat.DataBridge.csproj" />
+    <ProjectReference Include="..\Mofucat.DataBridge.Avro\Mofucat.DataBridge.Avro.csproj" />
   </ItemGroup>
 
   <ItemGroup>

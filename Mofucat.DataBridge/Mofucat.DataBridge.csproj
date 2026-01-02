@@ -2,19 +2,15 @@
 
   <PropertyGroup>
     <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
-    <RootNamespace>Mofucat.DataToolkit</RootNamespace>
+    <RootNamespace>Mofucat.DataBridge</RootNamespace>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>Mofucat.DataToolkit.Avro</PackageId>
-    <Title>DataToolkit.Avro</Title>
+    <PackageId>Mofucat.DataBridge</PackageId>
+    <Title>DataBridge</Title>
     <Description>DataReader adapter</Description>
-    <PackageTags>datareader bulkcopy avro</PackageTags>
+    <PackageTags>datareader bulkcopy</PackageTags>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Apache.Avro" Version="1.12.1" />
-  </ItemGroup>
 
 </Project>

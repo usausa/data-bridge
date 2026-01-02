@@ -1,4 +1,4 @@
-namespace Mofucat.DataToolkit;
+namespace Mofucat.DataBridge;
 
 public sealed class AvroDataReaderOption
 {

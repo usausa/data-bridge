@@ -1,4 +1,4 @@
-namespace Mofucat.DataToolkit;
+namespace Mofucat.DataBridge;
 
 internal sealed class MappingDataColumn
 {

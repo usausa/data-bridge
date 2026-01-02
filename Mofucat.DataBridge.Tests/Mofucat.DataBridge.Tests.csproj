@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Mofucat.DataToolkit</RootNamespace>
+    <RootNamespace>Mofucat.DataBridge</RootNamespace>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mofucat.DataToolkit\Mofucat.DataToolkit.csproj" />
+    <ProjectReference Include="..\Mofucat.DataBridge\Mofucat.DataBridge.csproj" />
   </ItemGroup>
 
 </Project>

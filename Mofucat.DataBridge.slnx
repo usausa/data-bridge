@@ -3,8 +3,8 @@
     <Project Path="Example/Example.csproj" />
   </Folder>
   <Folder Name="/Library/">
-    <Project Path="Mofucat.DataToolkit.Avro/Mofucat.DataToolkit.Avro.csproj" />
-    <Project Path="Mofucat.DataToolkit/Mofucat.DataToolkit.csproj" />
+    <Project Path="Mofucat.DataBridge.Avro/Mofucat.DataBridge.Avro.csproj" />
+    <Project Path="Mofucat.DataBridge/Mofucat.DataBridge.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
@@ -15,10 +15,10 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
     <File Path="LICENSE" />
-    <File Path="Mofucat.DataToolkit.sln.DotSettings" />
+    <File Path="Mofucat.DataBridge.sln.DotSettings" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/Test/">
-    <Project Path="Mofucat.DataToolkit.Tests/Mofucat.DataToolkit.Tests.csproj" />
+    <Project Path="Mofucat.DataBridge.Tests/Mofucat.DataBridge.Tests.csproj" />
   </Folder>
 </Solution>

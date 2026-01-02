@@ -1,4 +1,4 @@
-namespace Mofucat.DataToolkit;
+namespace Mofucat.DataBridge;
 
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class DataColumnAttribute : Attribute

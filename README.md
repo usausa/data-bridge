@@ -1,6 +1,6 @@
-# Mofucat.DataToolkit
+# Mofucat.DataBridge
 
-[![NuGet](https://img.shields.io/nuget/v/Mofucat.DataToolkit.svg)](https://www.nuget.org/packages/Mofucat.DataToolkit)
+[![NuGet](https://img.shields.io/nuget/v/Mofucat.DataBridge.svg)](https://www.nuget.org/packages/Mofucat.DataBridge)
 
 ## ObjectDataReader
 
@@ -44,9 +44,9 @@ loader.DestinationTableName = "Data";
 await loader.WriteToServerAsync(reader);
 ```
 
-# Mofucat.DataToolkit.Avro
+# Mofucat.DataBridge.Avro
 
-[![NuGet](https://img.shields.io/nuget/v/Mofucat.DataToolkit.Avro.svg)](https://www.nuget.org/packages/Mofucat.DataToolkit.Avro)
+[![NuGet](https://img.shields.io/nuget/v/Mofucat.DataBridge.Avro.svg)](https://www.nuget.org/packages/Mofucat.DataBridge.Avro)
 
 ## AvroDataReader
 
