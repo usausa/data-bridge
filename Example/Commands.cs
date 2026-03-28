@@ -26,17 +26,17 @@ public static class CommandBuilderExtensions
                 imp.AddSubCommand<ObjectImportSqlCommand>();
             });
         });
-        commands.AddCommand<MapCommand>(obj =>
+        commands.AddCommand<MapCommand>(map =>
         {
-            obj.AddSubCommand<MapImportCommand>(imp =>
+            map.AddSubCommand<MapImportCommand>(imp =>
             {
                 imp.AddSubCommand<MapImportMyCommand>();
                 imp.AddSubCommand<MapImportSqlCommand>();
             });
         });
-        commands.AddCommand<AvroCommand>(obj =>
+        commands.AddCommand<AvroCommand>(avro =>
         {
-            obj.AddSubCommand<AvroImportCommand>(imp =>
+            avro.AddSubCommand<AvroImportCommand>(imp =>
             {
                 imp.AddSubCommand<AvroImportMyCommand>();
                 imp.AddSubCommand<AvroImportSqlCommand>();
