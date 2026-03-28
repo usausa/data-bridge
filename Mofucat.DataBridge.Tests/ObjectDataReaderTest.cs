@@ -2,6 +2,7 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 namespace Mofucat.DataBridge;
 
+#pragma warning disable IDE0230
 public class ObjectDataReaderTest
 {
     [Fact]
@@ -136,3 +137,4 @@ public class ObjectDataReaderTest
         public char[] CharsValue { get; set; } = default!;
     }
 }
+#pragma warning restore IDE0230

@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Data;
 
+#pragma warning disable IDE0032
 #pragma warning disable CA1725
 public sealed class MappingDataReader : IDataReader
 {
@@ -268,3 +269,4 @@ public sealed class MappingDataReader : IDataReader
         return count;
     }
 }
+#pragma warning restore IDE0032

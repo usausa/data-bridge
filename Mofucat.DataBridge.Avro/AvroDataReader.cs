@@ -9,6 +9,7 @@ using Avro;
 using Avro.File;
 using Avro.Generic;
 
+#pragma warning disable IDE0032
 #pragma warning disable CA1725
 public sealed class AvroDataReader : IDataReader
 {
@@ -99,7 +100,7 @@ public sealed class AvroDataReader : IDataReader
 
         throw new NotSupportedException($"Unsupported Avro type. field=[{field.Name}]");
 
-        Type ConvertType(string name, Schema.Type type) => type switch
+        static Type ConvertType(string name, Schema.Type type) => type switch
         {
             Schema.Type.Boolean => typeof(bool),
             Schema.Type.Int => typeof(int),
@@ -338,3 +339,4 @@ public sealed class AvroDataReader : IDataReader
         throw new NotSupportedException($"Convert to Guid is not supported. type=[{name}]");
     }
 }
+#pragma warning restore IDE0032

@@ -6,6 +6,7 @@ using System.Data;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
+#pragma warning disable IDE0032
 #pragma warning disable CA1725
 public sealed class ObjectDataReader<T> : IDataReader
 {
@@ -281,3 +282,5 @@ public sealed class ObjectDataReader<T> : IDataReader
         throw new NotSupportedException($"Convert to chars is not supported. type=[{name}]");
     }
 }
+#pragma warning restore CA1725
+#pragma warning restore IDE0032

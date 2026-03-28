@@ -5,6 +5,7 @@ using System.Globalization;
 
 using CsvHelper;
 
+#pragma warning disable IDE0230
 public class MappingDataReaderTest
 {
     [Fact]
@@ -112,3 +113,4 @@ public class MappingDataReaderTest
         Assert.Equal(['2', '3', '4', '5'], chars);
     }
 }
+#pragma warning restore IDE0230

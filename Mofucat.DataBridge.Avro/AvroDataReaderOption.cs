@@ -25,7 +25,7 @@ public sealed class AvroDataReaderOption
 
     public AvroDataReaderOption AddConverter<TSource, TDestination>(Func<string, Func<TSource, TDestination>?> factory)
     {
-        entries ??= new List<(Type, Func<string, Type, Func<object, object>?>)>();
+        entries ??= [];
         entries.Add((Nullable.GetUnderlyingType(typeof(TDestination)) ?? typeof(TDestination), (s, t) =>
         {
             if (t != typeof(TSource))
