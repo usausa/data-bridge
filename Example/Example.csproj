@@ -11,8 +11,8 @@
     <PackageReference Include="CsvHelper" Version="33.1.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.0" />
     <PackageReference Include="MySqlConnector" Version="2.5.0" />
-    <PackageReference Include="System.CommandLine" Version="2.0.5" />
-    <PackageReference Include="Usa.Smart.CommandLine.Hosting" Version="2.3.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.6" />
+    <PackageReference Include="Usa.Smart.CommandLine.Hosting" Version="2.3.2" />
     <PackageReference Include="Usa.Smart.Data.Mapper" Version="2.8.0" />
   </ItemGroup>
 
