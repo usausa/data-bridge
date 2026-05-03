@@ -3,6 +3,8 @@ namespace Mofucat.DataBridge;
 using System;
 using System.Buffers;
 using System.Data;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 #pragma warning disable IDE0032
 #pragma warning disable CA1725
@@ -42,6 +44,25 @@ public sealed class MappingDataReader : IDataReader
     public object this[int i] => GetValue(i);
 
     public object this[string name] => GetValue(GetOrdinal(name));
+
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ref object? GetCurrentValueRef(int i)
+    {
+        if ((uint)i >= (uint)fieldCount)
+        {
+            ThrowIndexOutOfRange();
+        }
+
+        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(currentValues), i);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ThrowIndexOutOfRange() =>
+        throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
 
     //--------------------------------------------------------------------------------
     // Constructor
@@ -150,6 +171,7 @@ public sealed class MappingDataReader : IDataReader
     // Iterator
     //--------------------------------------------------------------------------------
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public bool Read()
     {
         if (!source.Read())
@@ -157,12 +179,26 @@ public sealed class MappingDataReader : IDataReader
             return false;
         }
 
-        for (var i = 0; i < fieldCount; i++)
+        var count = fieldCount;
+
+        // Optimize single column
+        if (count == 1)
         {
-            ref var entry = ref entries[i];
+            ref var entry = ref entries[0];
             var value = source.GetValue(entry.SourceIndex);
             var converter = entry.Converter;
-            currentValues[i] = converter is not null ? converter(value) : value;
+            currentValues[0] = converter is not null ? converter(value) : value;
+            return true;
+        }
+
+        ref var entriesBase = ref MemoryMarshal.GetArrayDataReference(entries);
+        ref var valuesBase = ref MemoryMarshal.GetArrayDataReference(currentValues);
+        for (var i = 0; i < count; i++)
+        {
+            ref var e = ref Unsafe.Add(ref entriesBase, i);
+            var value = source.GetValue(e.SourceIndex);
+            var converter = e.Converter;
+            Unsafe.Add(ref valuesBase, i) = converter is not null ? converter(value) : value;
         }
 
         return true;
@@ -178,18 +214,21 @@ public sealed class MappingDataReader : IDataReader
 
     public DataTable GetSchemaTable() => throw new NotSupportedException();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataTypeName(int i)
     {
         ref var entry = ref entries[i];
         return entry.ConvertType?.Name ?? source.GetDataTypeName(entry.SourceIndex);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Type GetFieldType(int i)
     {
         ref var entry = ref entries[i];
         return entry.ConvertType ?? source.GetFieldType(entry.SourceIndex);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetName(int i)
     {
         ref var entry = ref entries[i];
@@ -210,62 +249,91 @@ public sealed class MappingDataReader : IDataReader
     // Value
     //--------------------------------------------------------------------------------
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsDBNull(int i) => currentValues[i] is null or DBNull;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetValue(int i) => currentValues[i] ?? DBNull.Value;
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
     {
+        ref var valuesBase = ref MemoryMarshal.GetArrayDataReference(currentValues);
         for (var i = 0; i < fieldCount; i++)
         {
-            values[i] = currentValues[i] ?? DBNull.Value;
+            values[i] = Unsafe.Add(ref valuesBase, i) ?? DBNull.Value;
         }
+
         return fieldCount;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool GetBoolean(int i) => (bool)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte GetByte(int i) => (byte)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public char GetChar(int i) => (char)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short GetInt16(int i) => (short)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetInt32(int i) => (int)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public long GetInt64(int i) => (long)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float GetFloat(int i) => (float)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double GetDouble(int i) => (double)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public decimal GetDecimal(int i) => (decimal)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DateTime GetDateTime(int i) => (DateTime)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Guid GetGuid(int i) => (Guid)currentValues[i]!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetString(int i) => (string)currentValues[i]!;
 
     public long GetBytes(int i, long fieldOffset, byte[]? buffer, int bufferOffset, int length)
     {
-        var array = (byte[])currentValues[i]!;
+        if (buffer is null)
+        {
+            return 0;
+        }
+
+        var array = (byte[])GetCurrentValueRef(i)!;
         var count = Math.Min(length, array.Length - (int)fieldOffset);
         if (count > 0)
         {
-            array.AsSpan((int)fieldOffset, count).CopyTo(buffer);
+            array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
         }
+
         return count;
     }
 
     public long GetChars(int i, long fieldOffset, char[]? buffer, int bufferOffset, int length)
     {
-        var array = (char[])currentValues[i]!;
+        if (buffer is null)
+        {
+            return 0;
+        }
+
+        var array = (char[])GetCurrentValueRef(i)!;
         var count = Math.Min(length, array.Length - (int)fieldOffset);
         if (count > 0)
         {
-            array.AsSpan((int)fieldOffset, count).CopyTo(buffer);
+            array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
         }
+
         return count;
     }
 }

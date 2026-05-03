@@ -4,6 +4,8 @@ using System;
 using System.Buffers;
 using System.Data;
 using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using Avro;
 using Avro.File;
@@ -28,6 +30,8 @@ public sealed class AvroDataReader : IDataReader
 
     private readonly int fieldCount;
 
+    private readonly Dictionary<string, int> currentOrdinals = new(StringComparer.OrdinalIgnoreCase);
+
     private Entry[] entries;
 
     private object?[] currentValues;
@@ -49,6 +53,25 @@ public sealed class AvroDataReader : IDataReader
     public object this[int i] => GetValue(i);
 
     public object this[string name] => GetValue(GetOrdinal(name));
+
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ref Entry GetEntryRef(int i)
+    {
+        if ((uint)i >= (uint)fieldCount)
+        {
+            ThrowIndexOutOfRange();
+        }
+
+        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(entries), i);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ThrowIndexOutOfRange() =>
+        throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
 
     //--------------------------------------------------------------------------------
     // Constructor
@@ -78,6 +101,8 @@ public sealed class AvroDataReader : IDataReader
             entry.Name = field.Name;
             entry.Type = converter?.Type ?? type;
             entry.Converter = converter?.Factory;
+
+            currentOrdinals[field.Name] = i;
         }
     }
 
@@ -146,6 +171,7 @@ public sealed class AvroDataReader : IDataReader
     // Iterator
     //--------------------------------------------------------------------------------
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public bool Read()
     {
         if (!reader.HasNext())
@@ -155,12 +181,15 @@ public sealed class AvroDataReader : IDataReader
 
         currentRecord = reader.Next();
 
-        for (var i = 0; i < fieldCount; i++)
+        ref var entriesBase = ref MemoryMarshal.GetArrayDataReference(entries);
+        ref var valuesBase = ref MemoryMarshal.GetArrayDataReference(currentValues);
+        var count = fieldCount;
+        for (var i = 0; i < count; i++)
         {
-            ref var entry = ref entries[i];
+            ref var entry = ref Unsafe.Add(ref entriesBase, i);
             var value = currentRecord[entry.Name];
             var converter = entry.Converter;
-            currentValues[i] = converter is not null ? converter(value) : value;
+            Unsafe.Add(ref valuesBase, i) = converter is not null ? converter(value) : value;
         }
 
         return true;
@@ -176,113 +205,126 @@ public sealed class AvroDataReader : IDataReader
 
     public DataTable GetSchemaTable() => throw new NotSupportedException();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataTypeName(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return entry.Type.Name;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Type GetFieldType(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return entry.Type;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetName(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return entry.Name;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetOrdinal(string name)
     {
-        for (var i = 0; i < fieldCount; i++)
-        {
-            if (String.Equals(GetName(i), name, StringComparison.OrdinalIgnoreCase))
-            {
-                return i;
-            }
-        }
-        return -1;
+        return currentOrdinals.GetValueOrDefault(name, -1);
     }
 
     //--------------------------------------------------------------------------------
     // Value
     //--------------------------------------------------------------------------------
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsDBNull(int i) => currentValues[i] is null or DBNull;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetValue(int i) => currentValues[i] ?? DBNull.Value;
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
     {
+        ref var valuesBase = ref MemoryMarshal.GetArrayDataReference(currentValues);
         for (var i = 0; i < fieldCount; i++)
         {
-            values[i] = currentValues[i] ?? DBNull.Value;
+            values[i] = Unsafe.Add(ref valuesBase, i) ?? DBNull.Value;
         }
+
         return fieldCount;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool GetBoolean(int i)
     {
         var value = currentValues[i];
         return value is bool t ? t : Convert.ToBoolean(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte GetByte(int i)
     {
         var value = currentValues[i];
         return value is byte t ? t : Convert.ToByte(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public char GetChar(int i)
     {
         var value = currentValues[i];
         return value is char t ? t : Convert.ToChar(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short GetInt16(int i)
     {
         var value = currentValues[i];
         return value is short t ? t : Convert.ToInt16(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetInt32(int i)
     {
         var value = currentValues[i];
         return value is int t ? t : Convert.ToInt32(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public long GetInt64(int i)
     {
         var value = currentValues[i];
         return value is long t ? t : Convert.ToInt64(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float GetFloat(int i)
     {
         var value = currentValues[i];
         return value is float t ? t : Convert.ToSingle(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double GetDouble(int i)
     {
         var value = currentValues[i];
         return value is double t ? t : Convert.ToDouble(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public decimal GetDecimal(int i)
     {
         var value = currentValues[i];
         return value is decimal t ? t : Convert.ToDecimal(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DateTime GetDateTime(int i)
     {
         var value = currentValues[i];
         return value is DateTime t ? t : Convert.ToDateTime(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Guid GetGuid(int i)
     {
         var value = currentValues[i];
@@ -290,6 +332,7 @@ public sealed class AvroDataReader : IDataReader
         {
             return t;
         }
+
         if (value is string str)
         {
             return Guid.Parse(str, CultureInfo.InvariantCulture);
@@ -299,6 +342,7 @@ public sealed class AvroDataReader : IDataReader
         throw new NotSupportedException($"Convert to Guid is not supported. type=[{name}]");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetString(int i)
     {
         var value = currentValues[i];
@@ -310,16 +354,22 @@ public sealed class AvroDataReader : IDataReader
         var value = currentValues[i];
         if (value is byte[] array)
         {
+            if (buffer is null)
+            {
+                return 0;
+            }
+
             var count = Math.Min(length, array.Length - (int)fieldOffset);
             if (count > 0)
             {
-                array.AsSpan((int)fieldOffset, count).CopyTo(buffer);
+                array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
             }
+
             return count;
         }
 
         var name = value?.GetType().Name ?? "null";
-        throw new NotSupportedException($"Convert to Guid is not supported. type=[{name}]");
+        throw new NotSupportedException($"Convert to bytes is not supported. type=[{name}]");
     }
 
     public long GetChars(int i, long fieldOffset, char[]? buffer, int bufferOffset, int length)
@@ -327,16 +377,22 @@ public sealed class AvroDataReader : IDataReader
         var value = currentValues[i];
         if (value is char[] array)
         {
+            if (buffer is null)
+            {
+                return 0;
+            }
+
             var count = Math.Min(length, array.Length - (int)fieldOffset);
             if (count > 0)
             {
-                array.AsSpan((int)fieldOffset, count).CopyTo(buffer);
+                array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
             }
+
             return count;
         }
 
         var name = value?.GetType().Name ?? "null";
-        throw new NotSupportedException($"Convert to Guid is not supported. type=[{name}]");
+        throw new NotSupportedException($"Convert to chars is not supported. type=[{name}]");
     }
 }
 #pragma warning restore IDE0032

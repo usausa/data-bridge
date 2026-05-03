@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Data;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 #pragma warning disable IDE0032
 #pragma warning disable CA1725
@@ -44,6 +45,25 @@ public sealed class ObjectDataReader<T> : IDataReader
     public object this[int i] => GetValue(i);
 
     public object this[string name] => GetValue(GetOrdinal(name));
+
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ref Entry GetEntryRef(int i)
+    {
+        if ((uint)i >= (uint)fieldCount)
+        {
+            ThrowIndexOutOfRange();
+        }
+
+        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(entries), i);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ThrowIndexOutOfRange() =>
+        throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
 
     //--------------------------------------------------------------------------------
     // Constructor
@@ -114,21 +134,24 @@ public sealed class ObjectDataReader<T> : IDataReader
 
     public DataTable GetSchemaTable() => throw new NotSupportedException();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataTypeName(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return entry.Type.Name;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Type GetFieldType(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return entry.Type;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetName(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return entry.Name;
     }
 
@@ -153,79 +176,95 @@ public sealed class ObjectDataReader<T> : IDataReader
         return entry.Accessor(source.Current!);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsDBNull(int i) => GetObjectValue(i) is null or DBNull;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetValue(int i) => GetObjectValue(i) ?? DBNull.Value;
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
     {
+        ref var entriesBase = ref MemoryMarshal.GetArrayDataReference(entries);
         for (var i = 0; i < fieldCount; i++)
         {
-            values[i] = GetObjectValue(i) ?? DBNull.Value;
+            values[i] = Unsafe.Add(ref entriesBase, i).Accessor(source.Current!) ?? DBNull.Value;
         }
+
         return fieldCount;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool GetBoolean(int i)
     {
         var value = GetObjectValue(i);
         return value is bool t ? t : Convert.ToBoolean(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte GetByte(int i)
     {
         var value = GetObjectValue(i);
         return value is byte t ? t : Convert.ToByte(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public char GetChar(int i)
     {
         var value = GetObjectValue(i);
         return value is char t ? t : Convert.ToChar(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short GetInt16(int i)
     {
         var value = GetObjectValue(i);
         return value is short t ? t : Convert.ToInt16(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetInt32(int i)
     {
         var value = GetObjectValue(i);
         return value is int t ? t : Convert.ToInt32(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public long GetInt64(int i)
     {
         var value = GetObjectValue(i);
         return value is long t ? t : Convert.ToInt64(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float GetFloat(int i)
     {
         var value = GetObjectValue(i);
         return value is float t ? t : Convert.ToSingle(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double GetDouble(int i)
     {
         var value = GetObjectValue(i);
         return value is double t ? t : Convert.ToDouble(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public decimal GetDecimal(int i)
     {
         var value = GetObjectValue(i);
         return value is decimal t ? t : Convert.ToDecimal(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DateTime GetDateTime(int i)
     {
         var value = GetObjectValue(i);
         return value is DateTime t ? t : Convert.ToDateTime(value, CultureInfo.InvariantCulture);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Guid GetGuid(int i)
     {
         var value = GetObjectValue(i);
@@ -242,6 +281,7 @@ public sealed class ObjectDataReader<T> : IDataReader
         throw new NotSupportedException($"Convert to Guid is not supported. type=[{name}]");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetString(int i)
     {
         var value = GetObjectValue(i);
@@ -253,11 +293,17 @@ public sealed class ObjectDataReader<T> : IDataReader
         var value = GetObjectValue(i);
         if (value is byte[] array)
         {
+            if (buffer is null)
+            {
+                return 0;
+            }
+
             var count = Math.Min(length, array.Length - (int)fieldOffset);
             if (count > 0)
             {
-                array.AsSpan((int)fieldOffset, count).CopyTo(buffer);
+                array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
             }
+
             return count;
         }
 
@@ -270,11 +316,17 @@ public sealed class ObjectDataReader<T> : IDataReader
         var value = GetObjectValue(i);
         if (value is char[] array)
         {
+            if (buffer is null)
+            {
+                return 0;
+            }
+
             var count = Math.Min(length, array.Length - (int)fieldOffset);
             if (count > 0)
             {
-                array.AsSpan((int)fieldOffset, count).CopyTo(buffer);
+                array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
             }
+
             return count;
         }
 
