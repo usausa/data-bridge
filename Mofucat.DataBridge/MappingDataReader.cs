@@ -60,9 +60,9 @@ public sealed class MappingDataReader : IDataReader
         return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(currentValues), i);
     }
 
+    // ReSharper disable once NotResolvedInText
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void ThrowIndexOutOfRange() =>
-        throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
+    private static void ThrowIndexOutOfRange() => throw new ArgumentOutOfRangeException("i");
 
     //--------------------------------------------------------------------------------
     // Constructor
