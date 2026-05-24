@@ -3,13 +3,14 @@ namespace Mofucat.DataBridge;
 using System;
 using System.Buffers;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable IDE0032
 #pragma warning disable CA1725
-public sealed class ObjectDataReader<T> : IDataReader
+public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> : IDataReader
 {
     private static readonly ObjectDataReaderOption<T> DefaultOption = new();
 
@@ -71,6 +72,8 @@ public sealed class ObjectDataReader<T> : IDataReader
     // Constructor
     //--------------------------------------------------------------------------------
 
+    [RequiresDynamicCode("ObjectDataReader without an explicit option uses Expression.Compile(). Provide an ObjectDataReaderOption with an explicit AccessorFactory for AOT compatibility.")]
+    [RequiresUnreferencedCode("ObjectDataReader without an explicit option uses reflection. Provide an ObjectDataReaderOption with an explicit AccessorFactory for AOT compatibility.")]
     public ObjectDataReader(IEnumerable<T> source)
         : this(DefaultOption, source)
     {
@@ -144,6 +147,7 @@ public sealed class ObjectDataReader<T> : IDataReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [UnconditionalSuppressMessage("Trimming", "IL2093", Justification = "The returned Type is stored at construction time and is not used for reflection.")]
     public Type GetFieldType(int i)
     {
         ref var entry = ref GetEntryRef(i);

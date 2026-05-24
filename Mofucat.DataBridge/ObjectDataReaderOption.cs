@@ -1,10 +1,11 @@
 namespace Mofucat.DataBridge;
 
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
-public sealed class ObjectDataReaderOption<T>
+public sealed class ObjectDataReaderOption<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>
 {
     private static readonly PropertyInfo[] DefaultSelector =
         typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -23,8 +24,12 @@ public sealed class ObjectDataReaderOption<T>
 
     public Func<IEnumerable<PropertyInfo>> PropertySelector { get; set; } = () => DefaultSelector;
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "DefaultFactory is only called at runtime and requires the caller to ensure T's properties are preserved.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "DefaultFactory uses Expression.Compile() which is only invoked when no AOT-safe AccessorFactory is provided.")]
     public Func<PropertyInfo, Func<T, object?>> AccessorFactory { get; set; } = DefaultFactory;
 
+    [RequiresDynamicCode("Uses Expression.Compile() which is not supported in AOT environments.")]
+    [RequiresUnreferencedCode("Uses reflection to access properties which may be trimmed.")]
     private static Func<T, object?> DefaultFactory(PropertyInfo pi)
     {
         if (!Accessors.TryGetValue(pi, out var func))

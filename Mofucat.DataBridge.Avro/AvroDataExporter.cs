@@ -138,13 +138,13 @@ public sealed class AvroDataExporter
 #pragma warning disable CA2007
         await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SchemaOnly).ConfigureAwait(false);
 #pragma warning restore CA2007
-        var st = await reader.GetSchemaTableAsync().ConfigureAwait(false);
+        var st = await reader.GetColumnSchemaAsync().ConfigureAwait(false);
         var pos = 0;
-        foreach (var column in st!.Rows.Cast<DataRow>())
+        foreach (var column in st)
         {
-            var columnName = (string)column["ColumnName"];
-            var type = (Type)column["DataType"];
-            var allowNull = (bool)column["AllowDBNull"];
+            var columnName = column.ColumnName;
+            var type = column.DataType!;
+            var allowNull = column.AllowDBNull ?? true;
 
             Schema.Type schemeType;
             if (type == typeof(bool))

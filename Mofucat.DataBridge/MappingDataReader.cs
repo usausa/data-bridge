@@ -3,6 +3,7 @@ namespace Mofucat.DataBridge;
 using System;
 using System.Buffers;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -224,6 +225,7 @@ public sealed class MappingDataReader : IDataReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [UnconditionalSuppressMessage("Trimming", "IL2093", Justification = "The returned Type is stored at construction time and is not used for reflection.")]
     public Type GetFieldType(int i)
     {
         ref var entry = ref entries[i];
