@@ -173,7 +173,7 @@ public sealed class AvroDataReader : IDataReader
     // Iterator
     //--------------------------------------------------------------------------------
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public bool Read()
     {
         if (!reader.HasNext())
@@ -244,7 +244,7 @@ public sealed class AvroDataReader : IDataReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetValue(int i) => currentValues[i] ?? DBNull.Value;
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
     {
         ref var valuesBase = ref MemoryMarshal.GetArrayDataReference(currentValues);

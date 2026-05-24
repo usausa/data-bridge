@@ -173,7 +173,7 @@ public sealed class MappingDataReader : IDataReader
     // Iterator
     //--------------------------------------------------------------------------------
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public bool Read()
     {
         if (!source.Read())
@@ -257,7 +257,7 @@ public sealed class MappingDataReader : IDataReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetValue(int i) => currentValues[i] ?? DBNull.Value;
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
     {
         ref var valuesBase = ref MemoryMarshal.GetArrayDataReference(currentValues);

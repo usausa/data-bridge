@@ -184,7 +184,7 @@ public sealed class ObjectDataReader<T> : IDataReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetValue(int i) => GetObjectValue(i) ?? DBNull.Value;
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
     {
         ref var entriesBase = ref MemoryMarshal.GetArrayDataReference(entries);
