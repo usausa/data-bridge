@@ -220,8 +220,7 @@ public class AvroRoundTripTest
             var r = new GenericRecord(schema);
             r.Add("Id", row.Id);
             r.Add("Name", row.Name);
-            object? score = row.Score.HasValue ? row.Score.Value : null;
-            r.Add("Score", score);
+            r.Add("Score", row.Score);
             return r;
         });
 
@@ -297,7 +296,9 @@ public class AvroRoundTripTest
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 
+#pragma warning disable CA2007
         await using var con = new SqliteConnection("Data Source=:memory:");
+#pragma warning restore CA2007
         await con.OpenAsync(cancellationToken).ConfigureAwait(true);
 
         await using (var cmd = con.CreateCommand())
