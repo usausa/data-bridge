@@ -111,6 +111,69 @@ public class ObjectDataReaderTest
         Assert.Equal(['2', '3', '4', '5'], chars);
     }
 
+    [Fact]
+    public void TestOutOfRangeIndex()
+    {
+        var list = new List<Data> { new() { IntValue = 1 } };
+        using var reader = new ObjectDataReader<Data>(list);
+        Assert.True(reader.Read());
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => reader.GetValue(reader.FieldCount));
+        Assert.Throws<ArgumentOutOfRangeException>(() => reader.GetValue(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => reader.GetInt32(1000));
+        Assert.Throws<ArgumentOutOfRangeException>(() => reader.IsDBNull(reader.FieldCount));
+        Assert.Throws<ArgumentOutOfRangeException>(() => reader.GetName(reader.FieldCount));
+    }
+
+    [Fact]
+    public void TestGetBytesNullBuffer()
+    {
+        var list = new List<ConvertData>
+        {
+            new()
+            {
+                BooleanValue = true,
+                IntValue = 1,
+                StringValue = "A",
+                DateTimeValue = new DateTime(2000, 12, 31, 23, 59, 59),
+                GuidValue = Guid.Empty,
+                BytesValue = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF],
+                CharsValue = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+            }
+        };
+
+        using var reader = new ObjectDataReader<ConvertData>(list);
+        Assert.True(reader.Read());
+
+        // null buffer returns full length
+        var bytesLen = reader.GetBytes(5, 0, null, 0, 0);
+        Assert.Equal(16L, bytesLen);
+
+        // fieldOffset beyond array length returns 0, no exception
+        var bytesZero = reader.GetBytes(5, 100, new byte[4], 0, 4);
+        Assert.Equal(0L, bytesZero);
+
+        // normal copy works
+        var bytes = new byte[4];
+        var bytesCopied = reader.GetBytes(5, 4, bytes, 0, bytes.Length);
+        Assert.Equal(4L, bytesCopied);
+        Assert.Equal(new byte[] { 0x44, 0x55, 0x66, 0x77 }, bytes);
+
+        // null buffer returns full length for chars
+        var charsLen = reader.GetChars(6, 0, null, 0, 0);
+        Assert.Equal(10L, charsLen);
+
+        // fieldOffset beyond array length returns 0, no exception
+        var charsZero = reader.GetChars(6, 100, new char[4], 0, 4);
+        Assert.Equal(0L, charsZero);
+
+        // normal copy works
+        var chars = new char[4];
+        var charsCopied = reader.GetChars(6, 2, chars, 0, chars.Length);
+        Assert.Equal(4L, charsCopied);
+        Assert.Equal(['2', '3', '4', '5'], chars);
+    }
+
     private sealed class Data
     {
         public int IntValue { get; set; }

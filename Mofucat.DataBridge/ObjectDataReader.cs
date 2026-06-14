@@ -1,7 +1,6 @@
 namespace Mofucat.DataBridge;
 
 using System;
-using System.Buffers;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -31,7 +30,7 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
     private readonly Dictionary<string, int> currentOrdinals = new(StringComparer.OrdinalIgnoreCase);
 #pragma warning restore IDE0028
 
-    private Entry[] entries;
+    private readonly Entry[] entries;
 
     //--------------------------------------------------------------------------------
     // Property
@@ -83,7 +82,7 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
     {
         var properties = option.PropertySelector().ToArray();
         fieldCount = properties.Length;
-        entries = ArrayPool<Entry>.Shared.Rent(fieldCount);
+        entries = new Entry[fieldCount];
 
         for (var i = 0; i < properties.Length; i++)
         {
@@ -108,12 +107,6 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
         }
 
         source.Dispose();
-
-        if (entries.Length > 0)
-        {
-            ArrayPool<Entry>.Shared.Return(entries, true);
-            entries = [];
-        }
 
         IsClosed = true;
     }
@@ -178,7 +171,7 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private object? GetObjectValue(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return entry.Accessor(source.Current!);
     }
 
@@ -301,10 +294,10 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
         {
             if (buffer is null)
             {
-                return 0;
+                return array.Length;
             }
 
-            var count = Math.Min(length, array.Length - (int)fieldOffset);
+            var count = Math.Max(0, Math.Min(length, array.Length - (int)fieldOffset));
             if (count > 0)
             {
                 array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
@@ -324,10 +317,10 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
         {
             if (buffer is null)
             {
-                return 0;
+                return array.Length;
             }
 
-            var count = Math.Min(length, array.Length - (int)fieldOffset);
+            var count = Math.Max(0, Math.Min(length, array.Length - (int)fieldOffset));
             if (count > 0)
             {
                 array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));

@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="33.1.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.7.0" />
     <PackageReference Include="xunit.v3.mtp-v2" Version="3.2.2" />
@@ -22,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mofucat.DataBridge\Mofucat.DataBridge.csproj" />
+    <ProjectReference Include="..\Mofucat.DataBridge.Avro\Mofucat.DataBridge.Avro.csproj" />
   </ItemGroup>
 
 </Project>
