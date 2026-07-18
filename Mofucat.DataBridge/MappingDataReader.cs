@@ -135,7 +135,7 @@ public sealed class MappingDataReader : IDataReader
                 }
             }
 
-            currentOrdinals[source.GetName(entry.SourceIndex)] = i;
+            currentOrdinals.TryAdd(source.GetName(entry.SourceIndex), i);
         }
 
         currentValues = ArrayPool<object?>.Shared.Rent(fieldCount);
@@ -262,13 +262,14 @@ public sealed class MappingDataReader : IDataReader
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
     {
+        var count = Math.Min(values.Length, fieldCount);
         ref var valuesBase = ref MemoryMarshal.GetArrayDataReference(currentValues);
-        for (var i = 0; i < fieldCount; i++)
+        for (var i = 0; i < count; i++)
         {
             values[i] = Unsafe.Add(ref valuesBase, i) ?? DBNull.Value;
         }
 
-        return fieldCount;
+        return count;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -309,36 +310,48 @@ public sealed class MappingDataReader : IDataReader
 
     public long GetBytes(int i, long fieldOffset, byte[]? buffer, int bufferOffset, int length)
     {
-        if (buffer is null)
+        var value = GetCurrentValueRef(i);
+        if (value is byte[] array)
         {
-            return 0;
+            if (buffer is null)
+            {
+                return array.Length;
+            }
+
+            var count = Math.Max(0, Math.Min(length, array.Length - (int)fieldOffset));
+            if (count > 0)
+            {
+                array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
+            }
+
+            return count;
         }
 
-        var array = (byte[])GetCurrentValueRef(i)!;
-        var count = Math.Min(length, array.Length - (int)fieldOffset);
-        if (count > 0)
-        {
-            array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
-        }
-
-        return count;
+        var name = value?.GetType().Name ?? "null";
+        throw new NotSupportedException($"Convert to bytes is not supported. type=[{name}]");
     }
 
     public long GetChars(int i, long fieldOffset, char[]? buffer, int bufferOffset, int length)
     {
-        if (buffer is null)
+        var value = GetCurrentValueRef(i);
+        if (value is char[] array)
         {
-            return 0;
+            if (buffer is null)
+            {
+                return array.Length;
+            }
+
+            var count = Math.Max(0, Math.Min(length, array.Length - (int)fieldOffset));
+            if (count > 0)
+            {
+                array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
+            }
+
+            return count;
         }
 
-        var array = (char[])GetCurrentValueRef(i)!;
-        var count = Math.Min(length, array.Length - (int)fieldOffset);
-        if (count > 0)
-        {
-            array.AsSpan((int)fieldOffset, count).CopyTo(buffer.AsSpan(bufferOffset, count));
-        }
-
-        return count;
+        var name = value?.GetType().Name ?? "null";
+        throw new NotSupportedException($"Convert to chars is not supported. type=[{name}]");
     }
 }
 #pragma warning restore IDE0032

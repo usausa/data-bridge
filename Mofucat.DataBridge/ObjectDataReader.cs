@@ -184,13 +184,14 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
     {
+        var count = Math.Min(values.Length, fieldCount);
         ref var entriesBase = ref MemoryMarshal.GetArrayDataReference(entries);
-        for (var i = 0; i < fieldCount; i++)
+        for (var i = 0; i < count; i++)
         {
             values[i] = Unsafe.Add(ref entriesBase, i).Accessor(source.Current!) ?? DBNull.Value;
         }
 
-        return fieldCount;
+        return count;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

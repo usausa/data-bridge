@@ -174,6 +174,25 @@ public class ObjectDataReaderTest
         Assert.Equal(['2', '3', '4', '5'], chars);
     }
 
+    [Fact]
+    public void TestGetValuesShortArray()
+    {
+        var list = new List<Data>
+        {
+            new() { IntValue = 1, NullableIntValue = 10, StringValue = "A" }
+        };
+
+        using var reader = new ObjectDataReader<Data>(list);
+        Assert.True(reader.Read());
+
+        // short array copy
+        var values = new object[2];
+        var count = reader.GetValues(values);
+        Assert.Equal(2, count);
+        Assert.Equal(1, values[0]);
+        Assert.Equal(10, values[1]);
+    }
+
     private sealed class Data
     {
         public int IntValue { get; set; }

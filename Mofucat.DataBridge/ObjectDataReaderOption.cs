@@ -30,15 +30,11 @@ public sealed class ObjectDataReaderOption<[DynamicallyAccessedMembers(Dynamical
 
     [RequiresDynamicCode("Uses Expression.Compile() which is not supported in AOT environments.")]
     [RequiresUnreferencedCode("Uses reflection to access properties which may be trimmed.")]
-    private static Func<T, object?> DefaultFactory(PropertyInfo pi)
-    {
-        if (!Accessors.TryGetValue(pi, out var func))
+    private static Func<T, object?> DefaultFactory(PropertyInfo pi) =>
+        Accessors.GetOrAdd(pi, static p =>
         {
             var parameter = Expression.Parameter(typeof(T), "x");
-            var body = Expression.Convert(Expression.Property(parameter, pi), typeof(object));
-            func = Expression.Lambda<Func<T, object?>>(body, parameter).Compile();
-            Accessors[pi] = func;
-        }
-        return func;
-    }
+            var body = Expression.Convert(Expression.Property(parameter, p), typeof(object));
+            return Expression.Lambda<Func<T, object?>>(body, parameter).Compile();
+        });
 }

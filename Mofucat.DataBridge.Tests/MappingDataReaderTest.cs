@@ -112,5 +112,95 @@ public class MappingDataReaderTest
         reader.GetChars(6, 2, chars, 0, chars.Length);
         Assert.Equal(['2', '3', '4', '5'], chars);
     }
+
+    [Fact]
+    public void TestGetBytesNullBuffer()
+    {
+        var content =
+            "Col1,Col2\n" +
+            "00112233445566778899AABBCCDDEEFF,0123456789";
+        using var csv = new CsvReader(new StringReader(content), CultureInfo.InvariantCulture);
+        using var source = new CsvDataReader(csv);
+
+        var option = new MappingDataReaderOption();
+        option.AddColumn<string, byte[]>("Col1", Convert.FromHexString);
+        option.AddColumn<string, char[]>("Col2", static x => x.ToCharArray());
+
+        using var reader = new MappingDataReader(option, source);
+        Assert.True(reader.Read());
+
+        // Assert
+        var bytesLen = reader.GetBytes(0, 0, null, 0, 0);
+        Assert.Equal(16L, bytesLen);
+
+        var bytesZero = reader.GetBytes(0, 100, new byte[4], 0, 4);
+        Assert.Equal(0L, bytesZero);
+
+        var bytes = new byte[4];
+        var bytesCopied = reader.GetBytes(0, 4, bytes, 0, bytes.Length);
+        Assert.Equal(4L, bytesCopied);
+        Assert.Equal(new byte[] { 0x44, 0x55, 0x66, 0x77 }, bytes);
+
+        var charsLen = reader.GetChars(1, 0, null, 0, 0);
+        Assert.Equal(10L, charsLen);
+
+        var charsZero = reader.GetChars(1, 100, new char[4], 0, 4);
+        Assert.Equal(0L, charsZero);
+
+        var chars = new char[4];
+        var charsCopied = reader.GetChars(1, 2, chars, 0, chars.Length);
+        Assert.Equal(4L, charsCopied);
+        Assert.Equal(['2', '3', '4', '5'], chars);
+    }
+
+    [Fact]
+    public void TestGetValuesShortArray()
+    {
+        var content =
+            "Col1,Col2,Col3\n" +
+            "1,2,3";
+        using var csv = new CsvReader(new StringReader(content), CultureInfo.InvariantCulture);
+        using var source = new CsvDataReader(csv);
+
+        var option = new MappingDataReaderOption();
+        option.AddColumn("Col1");
+        option.AddColumn("Col2");
+        option.AddColumn("Col3");
+
+        using var reader = new MappingDataReader(option, source);
+
+        // Assert
+        Assert.True(reader.Read());
+
+        // short array copy
+        var values = new object[2];
+        var count = reader.GetValues(values);
+        Assert.Equal(2, count);
+        Assert.Equal("1", values[0]);
+        Assert.Equal("2", values[1]);
+    }
+
+    [Fact]
+    public void TestDuplicateColumnOrdinal()
+    {
+        var content =
+            "Col1,Col2\n" +
+            "abc,x";
+        using var csv = new CsvReader(new StringReader(content), CultureInfo.InvariantCulture);
+        using var source = new CsvDataReader(csv);
+
+        var option = new MappingDataReaderOption();
+        option.AddColumn("Col1");
+        option.AddColumn<string, int>("Col1", static x => x.Length);
+
+        using var reader = new MappingDataReader(option, source);
+
+        // Assert
+        Assert.Equal(0, reader.GetOrdinal("Col1"));
+
+        Assert.True(reader.Read());
+        Assert.Equal("abc", reader.GetValue(0));
+        Assert.Equal(3, reader.GetValue(1));
+    }
 }
 #pragma warning restore IDE0230
