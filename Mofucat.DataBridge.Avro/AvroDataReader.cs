@@ -72,6 +72,17 @@ public sealed class AvroDataReader : IDataReader
         return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(entries), i);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ref object? GetCurrentValueRef(int i)
+    {
+        if ((uint)i >= (uint)fieldCount)
+        {
+            ThrowIndexOutOfRange();
+        }
+
+        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(currentValues), i);
+    }
+
     // ReSharper disable once NotResolvedInText
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void ThrowIndexOutOfRange() => throw new ArgumentOutOfRangeException("i");
@@ -262,10 +273,10 @@ public sealed class AvroDataReader : IDataReader
     //--------------------------------------------------------------------------------
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsDBNull(int i) => currentValues[i] is null or DBNull;
+    public bool IsDBNull(int i) => GetCurrentValueRef(i) is null or DBNull;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public object GetValue(int i) => currentValues[i] ?? DBNull.Value;
+    public object GetValue(int i) => GetCurrentValueRef(i) ?? DBNull.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
@@ -282,77 +293,77 @@ public sealed class AvroDataReader : IDataReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool GetBoolean(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is bool t ? t : Convert.ToBoolean(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte GetByte(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is byte t ? t : Convert.ToByte(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public char GetChar(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is char t ? t : Convert.ToChar(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short GetInt16(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is short t ? t : Convert.ToInt16(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetInt32(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is int t ? t : Convert.ToInt32(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public long GetInt64(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is long t ? t : Convert.ToInt64(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float GetFloat(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is float t ? t : Convert.ToSingle(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double GetDouble(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is double t ? t : Convert.ToDouble(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public decimal GetDecimal(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is decimal t ? t : Convert.ToDecimal(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DateTime GetDateTime(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value is DateTime t ? t : Convert.ToDateTime(value, CultureInfo.InvariantCulture);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Guid GetGuid(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         if (value is Guid t)
         {
             return t;
@@ -370,13 +381,13 @@ public sealed class AvroDataReader : IDataReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetString(int i)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         return value as string ?? Convert.ToString(value, CultureInfo.InvariantCulture)!;
     }
 
     public long GetBytes(int i, long fieldOffset, byte[]? buffer, int bufferOffset, int length)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         if (value is byte[] array)
         {
             if (buffer is null)
@@ -399,7 +410,7 @@ public sealed class AvroDataReader : IDataReader
 
     public long GetChars(int i, long fieldOffset, char[]? buffer, int bufferOffset, int length)
     {
-        var value = currentValues[i];
+        var value = GetCurrentValueRef(i);
         if (value is char[] array)
         {
             if (buffer is null)

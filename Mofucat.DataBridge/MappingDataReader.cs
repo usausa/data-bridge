@@ -285,10 +285,10 @@ public sealed class MappingDataReader : IDataReader
     //--------------------------------------------------------------------------------
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsDBNull(int i) => currentValues[i] is null or DBNull;
+    public bool IsDBNull(int i) => GetCurrentValueRef(i) is null or DBNull;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public object GetValue(int i) => currentValues[i] ?? DBNull.Value;
+    public object GetValue(int i) => GetCurrentValueRef(i) ?? DBNull.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public int GetValues(object[] values)
@@ -304,40 +304,40 @@ public sealed class MappingDataReader : IDataReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool GetBoolean(int i) => (bool)currentValues[i]!;
+    public bool GetBoolean(int i) => (bool)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte GetByte(int i) => (byte)currentValues[i]!;
+    public byte GetByte(int i) => (byte)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public char GetChar(int i) => (char)currentValues[i]!;
+    public char GetChar(int i) => (char)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public short GetInt16(int i) => (short)currentValues[i]!;
+    public short GetInt16(int i) => (short)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int GetInt32(int i) => (int)currentValues[i]!;
+    public int GetInt32(int i) => (int)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public long GetInt64(int i) => (long)currentValues[i]!;
+    public long GetInt64(int i) => (long)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float GetFloat(int i) => (float)currentValues[i]!;
+    public float GetFloat(int i) => (float)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double GetDouble(int i) => (double)currentValues[i]!;
+    public double GetDouble(int i) => (double)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public decimal GetDecimal(int i) => (decimal)currentValues[i]!;
+    public decimal GetDecimal(int i) => (decimal)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DateTime GetDateTime(int i) => (DateTime)currentValues[i]!;
+    public DateTime GetDateTime(int i) => (DateTime)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Guid GetGuid(int i) => (Guid)currentValues[i]!;
+    public Guid GetGuid(int i) => (Guid)GetCurrentValueRef(i)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string GetString(int i) => (string)currentValues[i]!;
+    public string GetString(int i) => (string)GetCurrentValueRef(i)!;
 
     public long GetBytes(int i, long fieldOffset, byte[]? buffer, int bufferOffset, int length)
     {
