@@ -92,7 +92,7 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
 
             ref var entry = ref entries[i];
             entry.Name = property.Name;
-            entry.Type = property.PropertyType;
+            entry.Type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
             entry.Accessor = option.AccessorFactory(property);
         }
 
@@ -130,7 +130,7 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
 
     public IDataReader GetData(int i) => throw new NotSupportedException();
 
-    public DataTable GetSchemaTable() => throw new NotSupportedException();
+    public DataTable? GetSchemaTable() => null;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataTypeName(int i)

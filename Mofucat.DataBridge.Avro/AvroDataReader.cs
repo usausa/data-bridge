@@ -29,7 +29,7 @@ public sealed class AvroDataReader : IDataReader
 
     private readonly IFileReader<GenericRecord> reader;
 
-    private readonly int fieldCount;
+    private int fieldCount;
 
 #pragma warning disable IDE0028
     private readonly Dictionary<string, int> currentOrdinals = new(StringComparer.OrdinalIgnoreCase);
@@ -88,6 +88,22 @@ public sealed class AvroDataReader : IDataReader
     public AvroDataReader(AvroDataReaderOption option, Stream stream)
     {
         reader = DataFileReader<GenericRecord>.OpenReader(stream);
+        entries = [];
+        currentValues = [];
+
+        try
+        {
+            Initialize(option);
+        }
+        catch
+        {
+            ReturnBuffers();
+            throw;
+        }
+    }
+
+    private void Initialize(AvroDataReaderOption option)
+    {
         var scheme = (RecordSchema)reader.GetSchema();
 
         fieldCount = scheme.Fields.Count;
@@ -151,6 +167,13 @@ public sealed class AvroDataReader : IDataReader
 
         reader.Dispose();
 
+        ReturnBuffers();
+
+        IsClosed = true;
+    }
+
+    private void ReturnBuffers()
+    {
         if (entries.Length > 0)
         {
             ArrayPool<Entry>.Shared.Return(entries, true);
@@ -161,8 +184,6 @@ public sealed class AvroDataReader : IDataReader
             ArrayPool<object?>.Shared.Return(currentValues, true);
             currentValues = [];
         }
-
-        IsClosed = true;
     }
 
     public void Close()
@@ -206,7 +227,7 @@ public sealed class AvroDataReader : IDataReader
 
     public IDataReader GetData(int i) => throw new NotSupportedException();
 
-    public DataTable GetSchemaTable() => throw new NotSupportedException();
+    public DataTable? GetSchemaTable() => null;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataTypeName(int i)

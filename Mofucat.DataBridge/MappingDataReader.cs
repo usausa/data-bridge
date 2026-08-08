@@ -22,7 +22,7 @@ public sealed class MappingDataReader : IDataReader
 
     private readonly IDataReader source;
 
-    private readonly int fieldCount;
+    private int fieldCount;
 
 #pragma warning disable IDE0028
     private readonly Dictionary<string, int> currentOrdinals = new(StringComparer.OrdinalIgnoreCase);
@@ -63,6 +63,17 @@ public sealed class MappingDataReader : IDataReader
         return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(currentValues), i);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ref Entry GetEntryRef(int i)
+    {
+        if ((uint)i >= (uint)fieldCount)
+        {
+            ThrowIndexOutOfRange();
+        }
+
+        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(entries), i);
+    }
+
     // ReSharper disable once NotResolvedInText
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void ThrowIndexOutOfRange() => throw new ArgumentOutOfRangeException("i");
@@ -74,7 +85,22 @@ public sealed class MappingDataReader : IDataReader
     public MappingDataReader(MappingDataReaderOption option, IDataReader source)
     {
         this.source = source;
+        entries = [];
+        currentValues = [];
 
+        try
+        {
+            Initialize(option);
+        }
+        catch
+        {
+            ReturnBuffers();
+            throw;
+        }
+    }
+
+    private void Initialize(MappingDataReaderOption option)
+    {
         if (option.Columns is null)
         {
             fieldCount = source.FieldCount;
@@ -151,6 +177,13 @@ public sealed class MappingDataReader : IDataReader
         source.Close();
         source.Dispose();
 
+        ReturnBuffers();
+
+        IsClosed = true;
+    }
+
+    private void ReturnBuffers()
+    {
         if (entries.Length > 0)
         {
             ArrayPool<Entry>.Shared.Return(entries, true);
@@ -161,8 +194,6 @@ public sealed class MappingDataReader : IDataReader
             ArrayPool<object?>.Shared.Return(currentValues, true);
             currentValues = [];
         }
-
-        IsClosed = true;
     }
 
     public void Close()
@@ -215,12 +246,12 @@ public sealed class MappingDataReader : IDataReader
 
     public IDataReader GetData(int i) => throw new NotSupportedException();
 
-    public DataTable GetSchemaTable() => throw new NotSupportedException();
+    public DataTable? GetSchemaTable() => null;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataTypeName(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return entry.ConvertType?.Name ?? source.GetDataTypeName(entry.SourceIndex);
     }
 
@@ -228,14 +259,14 @@ public sealed class MappingDataReader : IDataReader
     [UnconditionalSuppressMessage("Trimming", "IL2093", Justification = "The returned Type is stored at construction time and is not used for reflection.")]
     public Type GetFieldType(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return entry.ConvertType ?? source.GetFieldType(entry.SourceIndex);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetName(int i)
     {
-        ref var entry = ref entries[i];
+        ref var entry = ref GetEntryRef(i);
         return source.GetName(entry.SourceIndex);
     }
 
