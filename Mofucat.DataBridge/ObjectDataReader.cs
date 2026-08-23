@@ -181,7 +181,7 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetValue(int i) => GetObjectValue(i) ?? DBNull.Value;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetValues(object[] values)
     {
         var count = Math.Min(values.Length, fieldCount);

@@ -205,7 +205,7 @@ public sealed class MappingDataReader : IDataReader
     // Iterator
     //--------------------------------------------------------------------------------
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Read()
     {
         if (!source.Read())
@@ -290,7 +290,7 @@ public sealed class MappingDataReader : IDataReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetValue(int i) => GetCurrentValueRef(i) ?? DBNull.Value;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetValues(object[] values)
     {
         var count = Math.Min(values.Length, fieldCount);
