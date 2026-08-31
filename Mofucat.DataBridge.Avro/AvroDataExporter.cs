@@ -143,7 +143,7 @@ public sealed class AvroDataExporter
         foreach (var column in st)
         {
             var columnName = column.ColumnName;
-            var type = column.DataType!;
+            var type = column.DataType;
             var allowNull = column.AllowDBNull ?? true;
 
             Schema.Type schemeType;

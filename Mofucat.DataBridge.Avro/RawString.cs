@@ -9,7 +9,10 @@ public readonly struct RawString
 {
     internal readonly string Value;
 
-    private RawString(string value) => Value = value;
+    private RawString(string value)
+    {
+        Value = value;
+    }
 
 #pragma warning disable CA2225
     public static implicit operator RawString(string s) => new(s);

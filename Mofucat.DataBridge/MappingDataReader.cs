@@ -22,11 +22,11 @@ public sealed class MappingDataReader : IDataReader
 
     private readonly IDataReader source;
 
-    private int fieldCount;
-
 #pragma warning disable IDE0028
     private readonly Dictionary<string, int> currentOrdinals = new(StringComparer.OrdinalIgnoreCase);
 #pragma warning restore IDE0028
+
+    private int fieldCount;
 
     private Entry[] entries;
 

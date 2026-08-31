@@ -29,11 +29,11 @@ public sealed class AvroDataReader : IDataReader
 
     private readonly IFileReader<GenericRecord> reader;
 
-    private int fieldCount;
-
 #pragma warning disable IDE0028
     private readonly Dictionary<string, int> currentOrdinals = new(StringComparer.OrdinalIgnoreCase);
 #pragma warning restore IDE0028
+
+    private int fieldCount;
 
     private Entry[] entries;
 

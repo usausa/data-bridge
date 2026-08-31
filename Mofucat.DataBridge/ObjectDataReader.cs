@@ -172,7 +172,7 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
     private object? GetObjectValue(int i)
     {
         ref var entry = ref GetEntryRef(i);
-        return entry.Accessor(source.Current!);
+        return entry.Accessor(source.Current);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -188,7 +188,7 @@ public sealed class ObjectDataReader<[DynamicallyAccessedMembers(DynamicallyAcce
         ref var entriesBase = ref MemoryMarshal.GetArrayDataReference(entries);
         for (var i = 0; i < count; i++)
         {
-            values[i] = Unsafe.Add(ref entriesBase, i).Accessor(source.Current!) ?? DBNull.Value;
+            values[i] = Unsafe.Add(ref entriesBase, i).Accessor(source.Current) ?? DBNull.Value;
         }
 
         return count;
