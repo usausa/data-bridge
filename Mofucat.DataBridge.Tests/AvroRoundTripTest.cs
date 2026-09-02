@@ -238,10 +238,10 @@ public class AvroRoundTripTest
         using var mappingReader = new MappingDataReader(mapOption, avroReader);
 
         // Verify all three rows
-        for (var i = 0; i < sourceRows.Length; i++)
+        foreach (var row in sourceRows)
         {
             Assert.True(mappingReader.Read());
-            var expected = sourceRows[i];
+            var expected = row;
             Assert.Equal(expected.Id, mappingReader.GetInt32(0));
             Assert.Equal(expected.Name, mappingReader.GetString(1));
             if (expected.Score.HasValue)
