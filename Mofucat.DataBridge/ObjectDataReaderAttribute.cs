@@ -12,6 +12,4 @@ public sealed class DataColumnAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class DataIgnoreAttribute : Attribute
-{
-}
+public sealed class DataIgnoreAttribute : Attribute;

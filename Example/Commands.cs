@@ -49,14 +49,10 @@ public static class CommandBuilderExtensions
 // Object
 //--------------------------------------------------------------------------------
 [Command("object", "Object example")]
-public sealed class ObjectCommand
-{
-}
+public sealed class ObjectCommand;
 
 [Command("imp", "Import example")]
-public sealed class ObjectImportCommand
-{
-}
+public sealed class ObjectImportCommand;
 
 [Command("my", "Load to MySQL")]
 public sealed class ObjectImportMyCommand : ICommandHandler
@@ -82,14 +78,10 @@ public sealed class ObjectImportSqlCommand : ICommandHandler
 // Mapping
 //--------------------------------------------------------------------------------
 [Command("map", "Mapping example")]
-public sealed class MapCommand
-{
-}
+public sealed class MapCommand;
 
 [Command("imp", "Import example")]
-public sealed class MapImportCommand
-{
-}
+public sealed class MapImportCommand;
 
 [Command("my", "Load to MySQL")]
 public sealed class MapImportMyCommand : ICommandHandler
@@ -119,14 +111,10 @@ public sealed class MapImportSqlCommand : ICommandHandler
 // Avro
 //--------------------------------------------------------------------------------
 [Command("avro", "Avro example")]
-public sealed class AvroCommand
-{
-}
+public sealed class AvroCommand;
 
 [Command("imp", "Import example")]
-public sealed class AvroImportCommand
-{
-}
+public sealed class AvroImportCommand;
 
 [Command("my", "Load to MySQL")]
 public sealed class AvroImportMyCommand : ICommandHandler
