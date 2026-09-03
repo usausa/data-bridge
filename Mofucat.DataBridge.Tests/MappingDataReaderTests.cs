@@ -6,7 +6,7 @@ using System.Globalization;
 using CsvHelper;
 
 #pragma warning disable IDE0230
-public class MappingDataReaderTest
+public class MappingDataReaderTests
 {
     [Fact]
     public void TestBasic()

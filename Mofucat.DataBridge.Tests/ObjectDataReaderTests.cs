@@ -3,7 +3,7 @@
 namespace Mofucat.DataBridge;
 
 #pragma warning disable IDE0230
-public class ObjectDataReaderTest
+public class ObjectDataReaderTests
 {
     [Fact]
     public void TestBasic()

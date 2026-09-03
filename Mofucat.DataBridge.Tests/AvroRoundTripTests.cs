@@ -10,7 +10,7 @@ using Avro.Generic;
 using Microsoft.Data.Sqlite;
 
 #pragma warning disable IDE0230
-public class AvroRoundTripTest
+public class AvroRoundTripTests
 {
     //--------------------------------------------------------------------------------
     // Helper
